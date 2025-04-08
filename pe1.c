@@ -80,7 +80,7 @@ void pe1(void)
   /* Use para contar minutos em execução: */
   /* if(minutos() >= 2) break; */
 
-  printf("%s: %lu\n", _FUNCTION_, r); /*answer*/
+  printf("%s: %lu\n", __FUNCTION__, r); /*answer*/
   return;
   
 }
