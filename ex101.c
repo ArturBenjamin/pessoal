@@ -100,7 +100,7 @@ void copyr(void)
     exit(EXIT_FAILURE);
 }
 
-void ex10_init(void)
+void ex101_init(void)
 {
     double numero;
 
