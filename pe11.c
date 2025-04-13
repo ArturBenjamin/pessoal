@@ -3,7 +3,7 @@
  *                                                                         *
  *   Project Euler                                                         *
  *   Copyright (C) 2015-2019   Template by Ruben Carlo Benante             *
- *   Author: Thiago De Azevedo Cavendish                                   *
+ *   Author: Artur Benjamin Monteiro Nascimento                            *
  ***************************************************************************
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -50,10 +50,10 @@ void pe11(void); /* Proj. Euler problem #11 */
 int main(void)
 {
     printf("Project Euler 20190817.233439, %s\n", SPEN);
-//  help(); /* optional help message at start */
-//  GRABsignals(); /* grab interruption signals */
+    /* help(); optional help message at start */
+    /* GRABsignals(); grab interruption signals */
     pe11(); /* Proj. Euler problem #11 */
-//  LEGOsignals(); /* restore interruption signals */
+    /* LEGOsignals(); restore interruption signals */
     return EXIT_SUCCESS;
 }
 
@@ -141,7 +141,6 @@ void pe11(void)
        if (DiagSec > MaxProduct) MaxProduct = DiagSec;
      }
    }
-    
     r = MaxProduct;
     /* Put this command inside a loop to get previews when pressing CTRL-C */
     /* ctrlc_printf("%s: Trying now %u\n", __FUNCTION__, r); */
