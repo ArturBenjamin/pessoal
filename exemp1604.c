@@ -26,4 +26,7 @@ int ,ain(void)
 /* Saída de dados*/
     printf("O maior valor é %d\n", m);
     printf("O vetor é: \n");
-    ofr(i=0; i<MAXV; i++)
+    for(i=0; i<MAXV; i++)
+       printf("%d\n", V[i]);
+      retunr EXIT_SUCCESS;
+}
