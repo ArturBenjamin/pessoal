@@ -9,9 +9,9 @@ int main(void)
     float FS; /* Fator de sensibilidade */
     float CCHO; /* Contagem de carboidratos */
     float RICHO; /* Relação insulina/carboidrato */
-    float QIGLI; /* Qtd de insulina para glicose */
-    float QICHO; /* Qtd de insulina para carboidrato */
-    float QIT; /* Qtd de insulina total */
+    float QIGLI = 0; /* Qtd de insulina para glicose */
+    float QICHO = 0; /* Qtd de insulina para carboidrato */
+    float QIT = 0; /* Qtd de insulina total */
 
     printf("Glicose: \n");
     scanf( "%f", &GLI);
@@ -39,8 +39,10 @@ int main(void)
     {
         QIGLI = (GLI - 80)/FS;
     }
-    QICHO = CCHO/RICHO;
-
+    while (CCHO > 0)
+    {
+        QICHO = CCHO/RICHO;
+    }
     QIT = QIGLI + QICHO;
 
     printf("A quantidade de insulina em unidades será: %.2f", QIT);
