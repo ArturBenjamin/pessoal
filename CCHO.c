@@ -14,15 +14,15 @@ int main(void)
     float QIT; /* Qtd de insulina total */
 
     printf("Glicose: \n");
-    scanf( "%d", &GLI);
+    scanf( "%f", &GLI);
     printf("Meta: \n");
-    scanf( "%d", &METGLI);
+    scanf( "%f", &METGLI);
     printf("Fator de sensibilidade: \n");
-    scanf( "%d", &FS);
+    scanf( "%f", &FS);
     printf("Quantidade de CHO: \n");
-    scanf( "%d", &CCHO);
+    scanf( "%f", &CCHO);
     printf("Relação I/R: \n");
-    scanf( "%d", &RICHO);
+    scanf( "%f", &RICHO);
 
     if(GLI <= METGLI)
     {
@@ -30,12 +30,12 @@ int main(void)
         {
             QIGLI = (-1);
         }
-        else(GLI >= 80)
+        else
         {
-            QIGLI = 0;    
+            QIGLI = 0;
         }
     }
-    else(GLI > METGLI)
+    else
     {
         QIGLI = (GLI - 80)/FS;
     }
