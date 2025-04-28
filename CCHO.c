@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 int main(void)
 {
@@ -45,7 +44,7 @@ int main(void)
     }
     QIT = QIGLI + QICHO;
 
-    printf("A quantidade de insulina em unidades será: %.2f", QIT);
+    printf("A quantidade de insulina em unidades será: %.2f\n", QIT);
 
     return 0;
 }
