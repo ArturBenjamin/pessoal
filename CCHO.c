@@ -39,7 +39,7 @@ int main(void)
     {
         QIGLI = (GLI - 80)/FS;
     }
-    while (CCHO > 0)
+    if(CCHO > 0)
     {
         QICHO = CCHO/RICHO;
     }
