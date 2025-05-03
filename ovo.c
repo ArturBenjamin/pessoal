@@ -68,16 +68,74 @@ return EXIT_SUCCESS;
 
 /* ------------------------------------------------------------------------------------------------------- */
 /* começar jogo */
-void startGame(GameState g)
+void startGame(GameState *g)
 {
+    for(int i=0; i<TAPESIZE; i++)
+    {
+        g->tape[i]= ' ';
+        g->owner[i]= 0;
+    }
+    g->currentPlayer=1;
+    g->lastMove=-1;
 
+    int p;
+    char l;
+
+    while (1)
+    {
+        displayTape(*g);
+        getInput(*g, *p, *l);
+        p--;
+
+        if (!makeMove(g, p, l))
+        {
+            printf("Jogada inválida. Tente novamente.\n");
+            continue;
+        }
+
+        g->lastMove = p;
+
+        int resultado = checkGameStatus(g);
+        if (resultado == 1 || resultado == 2)
+        {
+            displayTape(*g);
+            printf("Jogador %d venceu formando 'OVO'!\n", resultado);
+            break;
+        }
+        else if (resultado == -1)
+        {
+            displayTape(*g);
+            printf("Empate! Ninguém formou 'OVO'.\n");
+            break;
+        }
+
+        g->currentPlayer = (g->currentPlayer == 1) ? 2 : 1;
+    }
 }
 
 /* ------------------------------------------------------------------------------------------------------- */
 /* imprimir a linha sem nenhuma alteração */
 void printTape(GameState *g, int p, char l)
 {
+    printf("Espaços disponíveis:\n");
 
+    for (int i = 0; i < TAPESIZE; i++)
+    {
+        if (i == p && g->tape[i] == ' ')
+        {
+            printf(" %c ", l);
+        }
+        else
+        {
+            printf(" %c ", g->tape[i]);
+        }
+    }
+    printf("\n");
+
+    for (int i = 0; i < TAPESIZE; i++) {
+        printf("%2d ", i + 1);
+    }
+    printf("\n");
 }
 
 /* ------------------------------------------------------------------------------------------------------- */
@@ -116,7 +174,19 @@ void getInput(GameState g, int *p, char *l)
 /* mostrar linha agora alterada */
 void displayTape(const GameState g)
 {
+    printf("Espaços disponíveis:\n");
 
+    for(int i = 0; i < TAPESIZE; i++)
+    {
+        printf(" %c ", g.tape[i]);
+    }
+    printf("\n");
+
+    for(int i = 0; i < TAPESIZE; i++)
+    {
+        printf("%2d ", i + 1);
+    }
+    printf("\n");
 }
 
 /* ------------------------------------------------------------------------------------------------------- */
@@ -134,14 +204,22 @@ int makeMove(GameState *g, int p, char l)
 
 /* ------------------------------------------------------------------------------------------------------- */
 /* checar se alguem ganhou */
-int checkWin(const GameState *g)
-{
+int checkGameStatus(const GameState *g) {
+    // Verifica a vitória
+    for (int i = 0; i < TAPESIZE - 2; i++) {
+        if (g->tape[i] == 'O' && g->tape[i + 1] == 'V' && g->tape[i + 2] == 'O') {
+            if (g->lastMove == i || g->lastMove == i + 1 || g->lastMove == i + 2) {
+                return 1; // Vitoria
+            }
+        }
+    }
 
+    // Verifica o empate
+    for (int i = 0; i < TAPESIZE; i++) {
+        if (g->tape[i] == ' ') {
+            return 0;  // Jogo continua
+        }
+    }
+    return 2;  // Empate
 }
-
-
-
-
-
-
 
