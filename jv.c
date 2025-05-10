@@ -105,5 +105,39 @@ void iaImput(char tab[SIZE][SIZE], int jogada_num)
 /* checagem de vitoria/empate */
 int resultCheck(char tab[SIZE][SIZE])
 {
+    // Verifica linhas e colunas
+    for (int i = 0; i < SIZE; i++)
+    {
+        if (tab[i][0] == tab[i][1] && tab[i][1] == tab[i][2] && tab[i][0] != ' ')
+        {
+            return (tab[i][0] == 'X') ? 1 : 2;
+        }
+        if (tab[0][i] == tab[1][i] && tab[1][i] == tab[2][i] && tab[0][i] != ' ')
+        {
+            return (tab[0][i] == 'X') ? 1 : 2;
+        }
+    }
+    if (tab[0][0] == tab[1][1] && tab[1][1] == tab[2][2] && tab[0][0] != ' ')
+    {
+        return (tab[0][0] == 'X') ? 1 : 2;
+    }
 
+    // Diagonal secundária
+    if (tab[0][2] == tab[1][1] && tab[1][1] == tab[2][0] && tab[0][2] != ' ')
+    {
+        return (tab[0][2] == 'X') ? 1 : 2;
+    }
+    int empty = 0;
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            if (tab[i][j] == ' ')
+                empty = 1;
+        }
+    }
+
+    if (!empty) return -1;
+
+    return 0;
 }
