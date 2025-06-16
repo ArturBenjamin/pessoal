@@ -163,6 +163,12 @@ void show_menu(void);
 void draw_ascii_art(void);
 bool verifica_vitoria_nivel(t_game *g);
 void prepara_proximo_nivel(t_game *g);
+t_game pinky_chase(t_game g);
+t_game pinky_frightened(t_game g);
+t_game pinky_dead(t_game g);
+t_game pinky_home(t_game g);
+t_game update_pinky(t_game g);
+
 #endif // UPECMAN_H
 /* ---------------------------------------------------------------------- */
 /* vi: set ai et ts=4 sw=4 tw=0 wm=0 fo=croql : C config for Vim modeline */
