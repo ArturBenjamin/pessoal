@@ -108,6 +108,7 @@ typedef struct st_ghost
     t_direction dir; /* ghost current direction */
     t_pos starget; /* ghost scatter preferred corner */
     t_ghostmode mode; /* chase, scatter, afraid or dead */
+    int start_time; /* time para saida dos fantasmas */
 } t_ghost;
 
 typedef struct st_timer
@@ -122,6 +123,7 @@ typedef struct st_pacdata
     char lab[LABL][LABC]; /* the labyrinth map */
     t_pacman pacman; /* pacman data */
     t_ghost ghost[4]; /* ghost[blinky], ghost[pinky], ghost[inky], ghost[clyde] */
+    t_timer timer;
 } t_game;
 
 
@@ -141,12 +143,26 @@ void update_upecman_state(t_game *g, int player_input_key, bool *game_running);
 bool is_wall(t_game *g, int y, int x);
 void game_loop(t_game *g);
 void display_score_lives(t_game *g);
-// pinky.c
-t_game pinky_chase(t_game g);
-t_game pinky_frightened(t_game g);
-t_game pinky_dead(t_game g);
-t_game pinky_home(t_game g);
-t_game update_pinky(t_game g);
+/* ---------------------------------------------------------------------- */
+/* Menu ASCII Art */
+const char menu_title[5][50] = {
+    "  ____    _    ____ _  __   __  __    _    ____  ",
+    " |  _ \\  / \\  / ___| |/ /  |  \\/  |  / \\  / ___| ",
+    " | |_) |/ _ \\| |   | ' /   | |\\/| | / _ \\ \\___ \\ ",
+    " |  __// ___ \\ |___| . \\   | |  | |/ ___ \\ ___) |",
+    " |_| /_/   \\_\\____|_|\\_\\  |_|  |_/_/   \\_\\____/ "
+};
+const char menu_options[3][20] = {
+    "1. Jogar",
+    "2. Ajuda",
+    "3. Sair"
+};
+
+/* Protótipos das novas funções de menu */
+void show_menu(void);
+void draw_ascii_art(void);
+bool verifica_vitoria_nivel(t_game *g);
+void prepara_proximo_nivel(t_game *g);
 #endif // UPECMAN_H
 /* ---------------------------------------------------------------------- */
 /* vi: set ai et ts=4 sw=4 tw=0 wm=0 fo=croql : C config for Vim modeline */
