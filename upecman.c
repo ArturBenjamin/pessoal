@@ -439,6 +439,9 @@ void game_loop(t_game *g) {
 
         update_upecman_state(g, player_input_key, &game_running);
 
+        *g = update_pinky(*g);
+
+
         if (!game_running) break; // Exit if 'q' was pressed in update_upecman_state
 
         // Ghost logic would go here (not implemented in this version)
@@ -566,6 +569,93 @@ void move_pacman(t_game *g, int key_input)
         g->pacman.dir = actual_dir;
     }
 }
+// pinky.c - Funções dos modos de comportamento do Pinky
+
+#include "upecman.h"
+#include <stdlib.h>
+#include <ncurses.h>
+#include <math.h>
+
+// Chase Mode: Pinky tenta ir 4 blocos à frente da direção do Pacman
+t_game pinky_chase(t_game g) {
+    int targetY = g.pacman.pos.y;
+    int targetX = g.pacman.pos.x;
+
+    switch(g.pacman.dir) {
+        case up:    targetY -= 4; break;
+        case down:  targetY += 4; break;
+        case left:  targetX -= 4; break;
+        case right: targetX += 4; break;
+        default: break;
+    }
+
+    // Ajusta o movimento de Pinky para se aproximar do alvo
+    if (abs(targetY - g.ghost[pinky].pos.y) > abs(targetX - g.ghost[pinky].pos.x)) {
+        g.ghost[pinky].dir = (targetY < g.ghost[pinky].pos.y) ? up : down;
+    } else {
+        g.ghost[pinky].dir = (targetX < g.ghost[pinky].pos.x) ? left : right;
+    }
+    return g;
+}
+
+// Frightened Mode: Pinky se move aleatoriamente
+t_game pinky_frightened(t_game g) {
+    t_direction dirs[4] = {up, down, left, right};
+    g.ghost[pinky].dir = dirs[rand() % 4];
+    return g;
+}
+
+// Dead Mode: Pinky volta para o "spawn point" central
+t_game pinky_dead(t_game g) {
+    int center_y = 10;
+    int center_x = 10;
+
+    if (g.ghost[pinky].pos.y < center_y)
+        g.ghost[pinky].dir = down;
+    else if (g.ghost[pinky].pos.y > center_y)
+        g.ghost[pinky].dir = up;
+    else if (g.ghost[pinky].pos.x < center_x)
+        g.ghost[pinky].dir = right;
+    else if (g.ghost[pinky].pos.x > center_x)
+        g.ghost[pinky].dir = left;
+    else
+        g.ghost[pinky].mode = chase; // Chegou ao centro, volta ao normal
+
+    return g;
+}
+
+// Home (em casa): Pinky espera no canto dele ou dentro da "casa dos fantasmas"
+t_game pinky_home(t_game g) {
+    // Se não está na posição inicial, mova-se até lá
+    t_pos home = {9, 10};
+    if (g.ghost[pinky].pos.y < home.y)
+        g.ghost[pinky].dir = down;
+    else if (g.ghost[pinky].pos.y > home.y)
+        g.ghost[pinky].dir = up;
+    else if (g.ghost[pinky].pos.x < home.x)
+        g.ghost[pinky].dir = right;
+    else if (g.ghost[pinky].pos.x > home.x)
+        g.ghost[pinky].dir = left;
+
+    return g;
+}
+
+// Atualiza Pinky baseado no modo atual
+t_game update_pinky(t_game g) {
+    switch (g.ghost[pinky].mode) {
+        case chase:
+            return pinky_chase(g);
+        case scatter:
+            return pinky_home(g); // scatter = canto superior esquerdo
+        case afraid:
+            return pinky_frightened(g);
+        case dead:
+            return pinky_dead(g);
+        default:
+            return g;
+    }
+}
+
     // O '@' permanece na posição old_y, old_x.
 /* ---------------------------------------------------------------------- */
 /* vi: set ai et ts=4 sw=4 tw=0 wm=0 fo=croql : C config for Vim modeline */
