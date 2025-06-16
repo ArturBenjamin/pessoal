@@ -141,7 +141,12 @@ void update_upecman_state(t_game *g, int player_input_key, bool *game_running);
 bool is_wall(t_game *g, int y, int x);
 void game_loop(t_game *g);
 void display_score_lives(t_game *g);
-
+// pinky.c
+t_game pinky_chase(t_game g);
+t_game pinky_frightened(t_game g);
+t_game pinky_dead(t_game g);
+t_game pinky_home(t_game g);
+t_game update_pinky(t_game g);
 #endif // UPECMAN_H
 /* ---------------------------------------------------------------------- */
 /* vi: set ai et ts=4 sw=4 tw=0 wm=0 fo=croql : C config for Vim modeline */
