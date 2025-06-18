@@ -1,7 +1,28 @@
 t_game pinkymove(t_game g, int elapsed_seconds)
 {
     int i = 1; // Índice do Pinky
-    if (elapsed_seconds < g.ghost[i].start_time) return g;
+    if (elapsed_seconds < g.ghost[i].start_time)
+    return g;
+
+// LÓGICA DE SAÍDA DA CASA
+if ((g.ghost[i].pos.y > 7 && g.ghost[i].pos.y <= 9 && g.ghost[i].pos.x == 10) ||
+    (g.ghost[i].pos.y == 7 && g.ghost[i].pos.x >= 10 && g.ghost[i].pos.x < 12)) {
+
+    int prev_y = g.ghost[i].pos.y;
+    int prev_x = g.ghost[i].pos.x;
+
+    if (g.ghost[i].pos.y > 7) {
+        g.ghost[i].pos.y--;
+        g.ghost[i].dir = up;
+    } else if (g.ghost[i].pos.y == 7) {
+        g.ghost[i].pos.x++;
+        g.ghost[i].dir = right;
+    }
+
+    g.lab[prev_y][prev_x] = ' ';
+    g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
+    return g;
+}
 
     t_pos target; // Onde o Pinky quer chegar
     int y = g.ghost[i].pos.y;
