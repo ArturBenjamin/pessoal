@@ -1,9 +1,5 @@
 // PINKY - Movimento com lógica de cruzamento e anti-180° Modos
 
-#include "upecman.h"
-#include <stdlib.h>
-#include <math.h>
-
 // Verifica se direções são opostas
 int is_opposite_direction(int current_dir, int new_dir);
 
