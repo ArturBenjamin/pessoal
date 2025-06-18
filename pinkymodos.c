@@ -1,52 +1,59 @@
-#include "upecman.h"
-#include <stdlib.h>
+// MODO CHASE — Pinky mira 4 blocos à frente do Pac-Man
+t_pos pinky_chase(t_game g) {
+t_pos target = g.pacman.pos;
 
-// Define o alvo da Pinky com base no modo
-
-t_game pinky_set_target(t_game g) {
-    int i = 1;
-    switch (g.ghost[i].mode) {
-        case chase:
-            switch (g.pacman.dir) {
-                case up:
-                    g.ghost[i].starget.y = g.pacman.pos.y - 4;
-                    g.ghost[i].starget.x = g.pacman.pos.x - 4; // peculiaridade clássica
-                    break;
-                case down:
-                    g.ghost[i].starget.y = g.pacman.pos.y + 4;
-                    g.ghost[i].starget.x = g.pacman.pos.x;
-                    break;
-                case left:
-                    g.ghost[i].starget.y = g.pacman.pos.y;
-                    g.ghost[i].starget.x = g.pacman.pos.x - 4;
-                    break;
-                case right:
-                    g.ghost[i].starget.y = g.pacman.pos.y;
-                    g.ghost[i].starget.x = g.pacman.pos.x + 4;
-                    break;
-                default:
-                    g.ghost[i].starget = g.pacman.pos;
-            }
-            break;
-
-        case scatter:
-            g.ghost[i].starget.y = 0;
-            g.ghost[i].starget.x = 0;
-            break;
-
-        case frightened:
-            g.ghost[i].starget.y = rand() % 23;
-            g.ghost[i].starget.x = rand() % 20;
-            break;
-
-        case dead:
-            g.ghost[i].starget.y = 10;
-            g.ghost[i].starget.x = 10;
-            if (g.ghost[i].pos.y == 10 && g.ghost[i].pos.x == 10) {
-                g.ghost[i].mode = chase;
-            }
-            break;
-    }
-    return g;
+cpp
+Copiar
+Editar
+switch (g.pacman.dir) {
+    case up:
+        target.y -= 4;
+        target.x -= 4; // Comportamento clássico do jogo original
+        break;
+    case down:
+        target.y += 4;
+        break;
+    case left:
+        target.x -= 4;
+        break;
+    case right:
+        target.x += 4;
+        break;
+    default:
+        break;
 }
 
+// Clipping de limites do labirinto
+if (target.y < 0) target.y = 0;
+if (target.x < 0) target.x = 0;
+if (target.y >= LAB_HEIGHT) target.y = LAB_HEIGHT - 1;
+if (target.x >= LAB_WIDTH) target.x = LAB_WIDTH - 1;
+
+return target;
+}
+
+// MODO FRIGHTENED — Pinky foge para uma posição aleatória
+t_pos pinky_frightened(t_game g) {
+t_pos target;
+do {
+target.y = rand() % LAB_HEIGHT;
+target.x = rand() % LAB_WIDTH;
+} while (g.lab[target.y][target.x] == '#');
+return target;
+}
+
+// MODO AFRAID — Pinky vai para o canto inferior direito
+t_pos pinky_afraid(t_game g) {
+t_pos target;
+target.y = LAB_HEIGHT - 2;
+target.x = LAB_WIDTH - 2;
+return target;
+}
+
+// MODO DEAD — Pinky volta para o centro da casa dos fantasmas (10, 10)
+t_pos pinky_dead(t_game g) {
+t_pos target;
+target.y = 10;
+target.x = 10;
+return target;
+}
