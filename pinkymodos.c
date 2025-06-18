@@ -54,12 +54,26 @@ t_game deadpinky(t_game g) {
 t_game homepinky(t_game g) {
     int yghost = g.ghost[1].pos.y;
     int xghost = g.ghost[1].pos.x;
-    int home_y = 9, home_x = 10;
 
-    if (abs(home_y - yghost) > abs(home_x - xghost)) {
-        if (home_y < yghost && g.lab[yghost - 1][xghost] != '#') g.ghost[1].dir = up;
-        else if (g.lab[yghost + 1][xghost] != '#') g.ghost[1].dir = down;
-    } else {
+    // Posição inicial de espera na casa dos fantasmas (antes de sair)
+    int target_y = 9;
+    int target_x = 10;
+
+    // Move verticalmente primeiro
+    if (yghost > target_y && g.lab[yghost - 1][xghost] != '#') {
+        g.ghost[1].dir = up;
+    } else if (yghost < target_y && g.lab[yghost + 1][xghost] != '#') {
+        g.ghost[1].dir = down;
+    }
+    // Se já estiver na linha certa, move horizontal
+    else if (xghost > target_x && g.lab[yghost][xghost - 1] != '#') {
+        g.ghost[1].dir = left;
+    } else if (xghost < target_x && g.lab[yghost][xghost + 1] != '#') {
+        g.ghost[1].dir = right;
+    }
+
+    return g;
+} else {
         if (home_x < xghost && g.lab[yghost][xghost - 1] != '#') g.ghost[1].dir = left;
         else if (g.lab[yghost][xghost + 1] != '#') g.ghost[1].dir = right;
     }
