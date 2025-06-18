@@ -1,12 +1,8 @@
-// PINKY - Movimento com lógica anti-180°
+// PINKY - VERSÃO FINAL COM TELETRANSPORTE
+#include "upecman.h"
+#include <stdlib.h>
 
-// Verifica se a direção nova é oposta à atual
-int is_opposite_direction(int current_dir, int new_dir) {
-    return (current_dir == up && new_dir == down) ||
-           (current_dir == down && new_dir == up) ||
-           (current_dir == left && new_dir == right) ||
-           (current_dir == right && new_dir == left);
-}
+int is_opposite_direction(int current_dir, int new_dir);
 
 t_game pinkymove(t_game g, int elapsed_seconds)
 {
@@ -14,22 +10,25 @@ t_game pinkymove(t_game g, int elapsed_seconds)
 
     if (elapsed_seconds < g.ghost[i].start_time) return g;
 
-    // Saída da casa (ajustada)
+    // Saída da casa
     if ((g.ghost[i].pos.y > 7 && g.ghost[i].pos.y <= 9 && g.ghost[i].pos.x == 10) ||
         (g.ghost[i].pos.y == 7 && g.ghost[i].pos.x >= 10 && g.ghost[i].pos.x < 12)) {
 
-        int prev_y = g.ghost[i].pos.y;
-        int prev_x = g.ghost[i].pos.x;
+        int prev_y_house = g.ghost[i].pos.y;
+        int prev_x_house = g.ghost[i].pos.x;
 
-        if (g.ghost[i].pos.y > 7) { g.ghost[i].pos.y--; g.ghost[i].dir = up; }
-        else if (g.ghost[i].pos.y == 7) { g.ghost[i].pos.x++; g.ghost[i].dir = right; }
+        if (g.ghost[i].pos.y > 7) {
+            g.ghost[i].pos.y--; g.ghost[i].dir = up;
+        } else if (g.ghost[i].pos.y == 7) {
+            g.ghost[i].pos.x++; g.ghost[i].dir = right;
+        }
 
-        g.lab[prev_y][prev_x] = ' ';
+        g.lab[prev_y_house][prev_x_house] = ' ';
         g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
         return g;
     }
 
-    // Movimento com lógica anti-180°
+    // Lógica de movimento principal
     int prev_y = g.ghost[i].pos.y;
     int prev_x = g.ghost[i].pos.x;
 
@@ -64,20 +63,27 @@ t_game pinkymove(t_game g, int elapsed_seconds)
         if (valid_count > 0) {
             g.ghost[i].dir = valid_dirs[rand() % valid_count];
         } else {
-            // beco sem saída, permite 180°
-            g.ghost[i].dir = (g.ghost[i].dir == up) ? down :
-                            (g.ghost[i].dir == down) ? up :
-                            (g.ghost[i].dir == left) ? right : left;
+            // Beco sem saída: permite 180°
+            if(g.ghost[i].dir == up) g.ghost[i].dir = down;
+            else if(g.ghost[i].dir == down) g.ghost[i].dir = up;
+            else if(g.ghost[i].dir == left) g.ghost[i].dir = right;
+            else if(g.ghost[i].dir == right) g.ghost[i].dir = left;
         }
     }
 
-    // Move na direção escolhida
-    if (g.ghost[i].dir == up) g.ghost[i].pos.y--;
-    else if (g.ghost[i].dir == down) g.ghost[i].pos.y++;
-    else if (g.ghost[i].dir == left) g.ghost[i].pos.x--;
-    else if (g.ghost[i].dir == right) g.ghost[i].pos.x++;
+    // Movimento
+    if(g.ghost[i].dir == up) g.ghost[i].pos.y--;
+    else if(g.ghost[i].dir == down) g.ghost[i].pos.y++;
+    else if(g.ghost[i].dir == left) g.ghost[i].pos.x--;
+    else if(g.ghost[i].dir == right) g.ghost[i].pos.x++;
 
-    // Atualiza labirinto
+    // Teletransporte horizontal
+    if (g.ghost[i].pos.y == 10) {
+        if (g.ghost[i].pos.x <= 0) g.ghost[i].pos.x = 17;
+        else if (g.ghost[i].pos.x >= 18) g.ghost[i].pos.x = 1;
+    }
+
+    // Atualiza mapa
     g.lab[prev_y][prev_x] = ' ';
     g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
 
