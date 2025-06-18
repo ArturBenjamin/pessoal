@@ -1,77 +1,121 @@
-// Pinky - MODO CHASE: mira 4 blocos à frente do Pacman
-t_game chasepinky(t_game g) {
-    int ypac = g.pacman.pos.y, xpac = g.pacman.pos.x;
-    int yghost = g.ghost[1].pos.y, xghost = g.ghost[1].pos.x;
+// PINKY - Movimento com lógica de cruzamento e anti-180° Modos
 
-    int target_y = ypac, target_x = xpac;
-    switch (g.pacman.dir) {
-        case up:    target_y -= 4; break;
-        case down:  target_y += 4; break;
-        case left:  target_x -= 4; break;
-        case right: target_x += 4; break;
-        case none: break;
+#include "upecman.h"
+#include <stdlib.h>
+#include <math.h>
+
+// Verifica se direções são opostas
+int is_opposite_direction(int current_dir, int new_dir);
+
+// Função que define alvo conforme o modo de Pinky
+t_game pinky_set_target(t_game g) {
+    int i = 1;
+    switch (g.ghost[i].mode) {
+        case chase: {
+            int offset_y = 0, offset_x = 0;
+            switch (g.pacman.dir) {
+                case up: offset_y = -4; break;
+                case down: offset_y = 4; break;
+                case left: offset_x = -4; break;
+                case right: offset_x = 4; break;
+                case none: default: break;
+            }
+            g.ghost[i].starget.y = g.pacman.pos.y + offset_y;
+            g.ghost[i].starget.x = g.pacman.pos.x + offset_x;
+            break;
+        }
+        case scatter:
+            g.ghost[i].starget.y = 0;
+            g.ghost[i].starget.x = 0;
+            break;
+        case dead:
+            g.ghost[i].starget.y = 10;
+            g.ghost[i].starget.x = 10;
+            break;
+        case frightened:
+            g.ghost[i].starget.y = rand() % 23;
+            g.ghost[i].starget.x = rand() % 20;
+            break;
     }
-
-    if (abs(target_y - yghost) > abs(target_x - xghost)) {
-        if (target_y < yghost && g.lab[yghost - 1][xghost] != '#') g.ghost[1].dir = up;
-        else if (g.lab[yghost + 1][xghost] != '#') g.ghost[1].dir = down;
-    } else {
-        if (target_x < xghost && g.lab[yghost][xghost - 1] != '#') g.ghost[1].dir = left;
-        else if (g.lab[yghost][xghost + 1] != '#') g.ghost[1].dir = right;
-    }
-
     return g;
 }
 
-// Pinky - MODO FRIGHTENED: foge do Pacman
-t_game scatterpinky(t_game g) {
-    int ypac = g.pacman.pos.y, xpac = g.pacman.pos.x;
-    int yghost = g.ghost[1].pos.y, xghost = g.ghost[1].pos.x;
+t_game pinkymove(t_game g, int elapsed_seconds)
+{
+    int i = 1; // Índice da Pinky
 
-    if (abs(ypac - yghost) < abs(xpac - xghost)) {
-        if (ypac < yghost && g.lab[yghost + 1][xghost] != '#') g.ghost[1].dir = down;
-        else if (g.lab[yghost - 1][xghost] != '#') g.ghost[1].dir = up;
-    } else {
-        if (xpac < xghost && g.lab[yghost][xghost + 1] != '#') g.ghost[1].dir = right;
-        else if (g.lab[yghost][xghost - 1] != '#') g.ghost[1].dir = left;
-    }
+    if(elapsed_seconds < g.ghost[i].start_time) return g;
 
-    return g;
-}
+    // Saída da casa
+    if ((g.ghost[i].pos.y > 7 && g.ghost[i].pos.y <= 9 && g.ghost[i].pos.x == 10) ||
+        (g.ghost[i].pos.y == 7 && g.ghost[i].pos.x >= 10 && g.ghost[i].pos.x < 12)) {
 
-// Pinky - MODO DEAD: volta para a casa central
-t_game deadpinky(t_game g) {
-    int yghost = g.ghost[1].pos.y;
-    int xghost = g.ghost[1].pos.x;
-    int center_y = 10, center_x = 10;
+        int prev_y = g.ghost[i].pos.y;
+        int prev_x = g.ghost[i].pos.x;
 
-    if (yghost == center_y && xghost == center_x) {
-        g.ghost[1].mode = chase;
+        if (g.ghost[i].pos.y > 7) { g.ghost[i].pos.y--; g.ghost[i].dir = up; }
+        else if (g.ghost[i].pos.y == 7) { g.ghost[i].pos.x++; g.ghost[i].dir = right; }
+
+        g.lab[prev_y][prev_x] = ' ';
+        g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
         return g;
     }
 
-    if (abs(center_y - yghost) > abs(center_x - xghost)) {
-        if (center_y < yghost && g.lab[yghost - 1][xghost] != '#') g.ghost[1].dir = up;
-        else if (g.lab[yghost + 1][xghost] != '#') g.ghost[1].dir = down;
-    } else {
-        if (center_x < xghost && g.lab[yghost][xghost - 1] != '#') g.ghost[1].dir = left;
-        else if (g.lab[yghost][xghost + 1] != '#') g.ghost[1].dir = right;
-    }
-    return g;
-}
+    // Atualiza alvo conforme o modo
+    g = pinky_set_target(g);
 
-// Pinky - MODO HOME: espera na posição (9,10) até hora de sair
-t_game homepinky(t_game g) {
-    int yghost = g.ghost[1].pos.y;
-    int xghost = g.ghost[1].pos.x;
-    int home_y = 9, home_x = 10;
+    // Lógica de movimento
+    int prev_y = g.ghost[i].pos.y;
+    int prev_x = g.ghost[i].pos.x;
 
-    if (abs(home_y - yghost) > abs(home_x - xghost)) {
-        if (home_y < yghost && g.lab[yghost - 1][xghost] != '#') g.ghost[1].dir = up;
-        else if (g.lab[yghost + 1][xghost] != '#') g.ghost[1].dir = down;
-    } else {
-        if (home_x < xghost && g.lab[yghost][xghost - 1] != '#') g.ghost[1].dir = left;
-        else if (g.lab[yghost][xghost + 1] != '#') g.ghost[1].dir = right;
+    int wall_ahead = (g.ghost[i].dir == up && g.lab[prev_y - 1][prev_x] == '#') ||
+                     (g.ghost[i].dir == down && g.lab[prev_y + 1][prev_x] == '#') ||
+                     (g.ghost[i].dir == left && g.lab[prev_y][prev_x - 1] == '#') ||
+                     (g.ghost[i].dir == right && g.lab[prev_y][prev_x + 1] == '#');
+
+    int possible_moves = 0;
+    if (g.lab[prev_y - 1][prev_x] != '#') possible_moves++;
+    if (g.lab[prev_y + 1][prev_x] != '#') possible_moves++;
+    if (g.lab[prev_y][prev_x - 1] != '#') possible_moves++;
+    if (g.lab[prev_y][prev_x + 1] != '#') possible_moves++;
+
+    if (wall_ahead || possible_moves > 2) {
+        int best_dir = -1;
+        int best_dist = 9999;
+        int directions[] = {up, down, left, right};
+
+        for (int j = 0; j < 4; j++) {
+            int dir = directions[j];
+            if (is_opposite_direction(g.ghost[i].dir, dir)) continue;
+
+            int ny = prev_y, nx = prev_x;
+            if (dir == up && g.lab[ny - 1][nx] != '#') ny--;
+            else if (dir == down && g.lab[ny + 1][nx] != '#') ny++;
+            else if (dir == left && g.lab[ny][nx - 1] != '#') nx--;
+            else if (dir == right && g.lab[ny][nx + 1] != '#') nx++;
+            else continue;
+
+            int dy = abs(g.ghost[i].starget.y - ny);
+            int dx = abs(g.ghost[i].starget.x - nx);
+            int dist = dy + dx;
+
+            if (dist < best_dist) {
+                best_dist = dist;
+                best_dir = dir;
+            }
+        }
+
+        if (best_dir != -1) g.ghost[i].dir = best_dir;
     }
+
+    // Movimento
+    if(g.ghost[i].dir == up) g.ghost[i].pos.y--;
+    else if(g.ghost[i].dir == down) g.ghost[i].pos.y++;
+    else if(g.ghost[i].dir == left) g.ghost[i].pos.x--;
+    else if(g.ghost[i].dir == right) g.ghost[i].pos.x++;
+
+    g.lab[prev_y][prev_x] = ' ';
+    g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
+
     return g;
 }
