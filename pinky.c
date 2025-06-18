@@ -80,7 +80,17 @@ t_game pinkymove(t_game g, int elapsed_seconds)
         g.ghost[1].pos.x = 17;
     else if (g.ghost[1].pos.x == 18 && g.ghost[1].pos.y == 10)
         g.ghost[1].pos.x = 1;
-// Chase Mode — Pinky mira 4 blocos à frente do Pac-Man
+
+    // Pinky modos: chase, scatter, dead, afraid
+case(pinky):
+    {
+    // Sair da casa
+    if (g.ghost[i].pos.y > 7 && g.ghost[i].pos.y <= 9 && g.ghost[i].pos.x == 10)
+    {
+        g.ghost[i].pos.y--;
+        continue;
+    }
+    // Chase Mode — Pinky mira 4 blocos à frente do Pac-Man
     if (g.ghost[i].mode == chase)
     {
         int offsetY = 0, offsetX = 0;
