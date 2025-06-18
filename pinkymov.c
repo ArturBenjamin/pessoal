@@ -80,3 +80,5 @@ t_game pinkymove(t_game g, int elapsed_seconds)
         g.ghost[1].pos.x = 17;
     else if (g.ghost[1].pos.x == 18 && g.ghost[1].pos.y == 10)
         g.ghost[1].pos.x = 1;
+    return g;
+}
