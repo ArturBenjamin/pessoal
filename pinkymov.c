@@ -1,4 +1,4 @@
-// PINKY - Movimento com lógica anti-180° adaptado do Inky
+// PINKY - Movimento com lógica anti-180°
 
 // Verifica se a direção nova é oposta à atual
 int is_opposite_direction(int current_dir, int new_dir) {
