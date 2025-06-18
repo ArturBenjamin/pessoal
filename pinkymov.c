@@ -1,91 +1,90 @@
-// PINKY - VERSÃO FINAL COM TELETRANSPORTE
-#include "upecman.h"
-#include <stdlib.h>
-
-int is_opposite_direction(int current_dir, int new_dir);
-
 t_game pinkymove(t_game g, int elapsed_seconds)
 {
-    int i = 1; // Índice da Pinky
+    t_pos target; // Onde o Pinky quer chegar
 
-    if (elapsed_seconds < g.ghost[i].start_time) return g;
-
-    // Saída da casa
-    if ((g.ghost[i].pos.y > 7 && g.ghost[i].pos.y <= 9 && g.ghost[i].pos.x == 10) ||
-        (g.ghost[i].pos.y == 7 && g.ghost[i].pos.x >= 10 && g.ghost[i].pos.x < 12)) {
-
-        int prev_y_house = g.ghost[i].pos.y;
-        int prev_x_house = g.ghost[i].pos.x;
-
-        if (g.ghost[i].pos.y > 7) {
-            g.ghost[i].pos.y--; g.ghost[i].dir = up;
-        } else if (g.ghost[i].pos.y == 7) {
-            g.ghost[i].pos.x++; g.ghost[i].dir = right;
-        }
-
-        g.lab[prev_y_house][prev_x_house] = ' ';
-        g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
-        return g;
+    // =================================================================================
+    // PASSO 1: CALCULAR O ALVO
+    // =================================================================================
+    switch (g.pacman.dir)
+    {
+        case up:
+            target.y = g.pacman.pos.y - 4;
+            target.x = g.pacman.pos.x - 4; // Peculiaridade do jogo original
+            break;
+        case down:
+            target.y = g.pacman.pos.y + 4;
+            target.x = g.pacman.pos.x;
+            break;
+        case left:
+            target.y = g.pacman.pos.y;
+            target.x = g.pacman.pos.x - 4;
+            break;
+        case right:
+            target.y = g.pacman.pos.y;
+            target.x = g.pacman.pos.x + 4;
+            break;
+        // Caso o Pac-Man esteja parado, o Pinky pode mirar diretamente nele
+        default:
+            target.y = g.pacman.pos.y;
+            target.x = g.pacman.pos.x;
+            break;
     }
 
-    // Lógica de movimento principal
-    int prev_y = g.ghost[i].pos.y;
-    int prev_x = g.ghost[i].pos.x;
+    // =================================================================================
+    // PASSO 2: ESCOLHER A MELHOR ROTA
+    // =================================================================================
+    long int dist_up = 99999, dist_down = 99999, dist_left = 99999, dist_right = 99999;
 
-    int wall_ahead = (g.ghost[i].dir == up && g.lab[prev_y - 1][prev_x] == '#') ||
-                     (g.ghost[i].dir == down && g.lab[prev_y + 1][prev_x] == '#') ||
-                     (g.ghost[i].dir == left && g.lab[prev_y][prev_x - 1] == '#') ||
-                     (g.ghost[i].dir == right && g.lab[prev_y][prev_x + 1] == '#');
-
-    int possible_moves = 0;
-    if (g.lab[prev_y - 1][prev_x] != '#') possible_moves++;
-    if (g.lab[prev_y + 1][prev_x] != '#') possible_moves++;
-    if (g.lab[prev_y][prev_x - 1] != '#') possible_moves++;
-    if (g.lab[prev_y][prev_x + 1] != '#') possible_moves++;
-
-    if (wall_ahead || possible_moves > 2) {
-        int valid_dirs[4];
-        int valid_count = 0;
-        int directions[] = {up, down, left, right};
-
-        for (int j = 0; j < 4; j++) {
-            int test_dir = directions[j];
-            if (is_opposite_direction(g.ghost[i].dir, test_dir)) continue;
-
-            if ((test_dir == up && g.lab[prev_y - 1][prev_x] != '#') ||
-                (test_dir == down && g.lab[prev_y + 1][prev_x] != '#') ||
-                (test_dir == left && g.lab[prev_y][prev_x - 1] != '#') ||
-                (test_dir == right && g.lab[prev_y][prev_x + 1] != '#')) {
-                valid_dirs[valid_count++] = test_dir;
-            }
-        }
-
-        if (valid_count > 0) {
-            g.ghost[i].dir = valid_dirs[rand() % valid_count];
-        } else {
-            // Beco sem saída: permite 180°
-            if(g.ghost[i].dir == up) g.ghost[i].dir = down;
-            else if(g.ghost[i].dir == down) g.ghost[i].dir = up;
-            else if(g.ghost[i].dir == left) g.ghost[i].dir = right;
-            else if(g.ghost[i].dir == right) g.ghost[i].dir = left;
-        }
+    // Calcula a distância para o alvo se for para CIMA
+    if (g.ghost[pinky].dir != down && g.lab[g.ghost[pinky].pos.y - 1][g.ghost[pinky].pos.x] != '#')
+    {
+        dist_up = pow(g.ghost[pinky].pos.y - 1 - target.y, 2) + pow(g.ghost[pinky].pos.x - target.x, 2);
     }
 
-    // Movimento
-    if(g.ghost[i].dir == up) g.ghost[i].pos.y--;
-    else if(g.ghost[i].dir == down) g.ghost[i].pos.y++;
-    else if(g.ghost[i].dir == left) g.ghost[i].pos.x--;
-    else if(g.ghost[i].dir == right) g.ghost[i].pos.x++;
-
-    // Teletransporte horizontal
-    if (g.ghost[i].pos.y == 10) {
-        if (g.ghost[i].pos.x <= 0) g.ghost[i].pos.x = 17;
-        else if (g.ghost[i].pos.x >= 18) g.ghost[i].pos.x = 1;
+    // Calcula a distância para o alvo se for para BAIXO
+    if (g.ghost[pinky].dir != up && g.lab[g.ghost[pinky].pos.y + 1][g.ghost[pinky].pos.x] != '#')
+    {
+        dist_down = pow(g.ghost[pinky].pos.y + 1 - target.y, 2) + pow(g.ghost[pinky].pos.x - target.x, 2);
     }
 
-    // Atualiza mapa
-    g.lab[prev_y][prev_x] = ' ';
-    g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
+    // Calcula a distância para o alvo se for para ESQUERDA
+    if (g.ghost[pinky].dir != right && g.lab[g.ghost[pinky].pos.y][g.ghost[pinky].pos.x - 1] != '#')
+    {
+        dist_left = pow(g.ghost[pinky].pos.y - target.y, 2) + pow(g.ghost[pinky].pos.x - 1 - target.x, 2);
+    }
+
+    // Calcula a distância para o alvo se for para DIREITA
+    if (g.ghost[pinky].dir != left && g.lab[g.ghost[pinky].pos.y][g.ghost[pinky].pos.x + 1] != '#')
+    {
+        dist_right = pow(g.ghost[pinky].pos.y - target.y, 2) + pow(g.ghost[pinky].pos.x + 1 - target.x, 2);
+    }
+
+    // Compara as distâncias e escolhe o menor caminho
+    if (dist_up <= dist_down && dist_up <= dist_left && dist_up <= dist_right)
+        g.ghost[pinky].dir = up;
+    else if (dist_down <= dist_up && dist_down <= dist_left && dist_down <= dist_right)
+        g.ghost[pinky].dir = down;
+    else if (dist_left <= dist_up && dist_left <= dist_down && dist_left <= dist_right)
+        g.ghost[pinky].dir = left;
+    else
+        g.ghost[pinky].dir = right;
+
+    // =================================================================================
+    // PASSO 3: ATUALIZAR A POSIÇÃO
+    // =================================================================================
+    if(g.ghost[pinky].dir == up) g.ghost[pinky].pos.y--;
+    else if(g.ghost[pinky].dir == down) g.ghost[pinky].pos.y++;
+    else if(g.ghost[pinky].dir == left) g.ghost[pinky].pos.x--;
+    else if(g.ghost[pinky].dir == right) g.ghost[pinky].pos.x++;
+
+    // Lógica do túnel
+    if (g.ghost[pinky].pos.y == 10) {
+        if (g.ghost[pinky].pos.x <= 0) {
+            g.ghost[pinky].pos.x = 17;
+        } else if (g.ghost[pinky].pos.x >= 18) {
+            g.ghost[pinky].pos.x = 1;
+        }
+    }
 
     return g;
 }
