@@ -46,13 +46,5 @@ void modospinky(t_game *g)
             if (yg == 10 && xg == 10)
                 g->ghost[i].mode = chase;
             break;
-
-        case scatter:
-            // Pinky vai para o canto superior esquerdo
-            if (yg > 0 && g->lab[yg - 1][xg] != '#') g->ghost[i].dir = up;
-            else if (xg > 0 && g->lab[yg][xg - 1] != '#') g->ghost[i].dir = left;
-            else if (g->lab[yg][xg + 1] != '#') g->ghost[i].dir = right;
-            else if (g->lab[yg + 1][xg] != '#') g->ghost[i].dir = down;
-            break;
     }
 }
