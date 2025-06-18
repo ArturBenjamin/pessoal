@@ -1,84 +1,85 @@
-// Pinky Mov
+// PINKY - Movimento com lógica anti-180° adaptado do Inky
+
+// Verifica se a direção nova é oposta à atual
+int is_opposite_direction(int current_dir, int new_dir) {
+    return (current_dir == up && new_dir == down) ||
+           (current_dir == down && new_dir == up) ||
+           (current_dir == left && new_dir == right) ||
+           (current_dir == right && new_dir == left);
+}
+
 t_game pinkymove(t_game g, int elapsed_seconds)
 {
-    // Pinky só se move após 10 segundos de jogo
-    if(elapsed_seconds < g.ghost[1].start_time)
+    int i = 1; // Índice da Pinky
+
+    if (elapsed_seconds < g.ghost[i].start_time) return g;
+
+    // Saída da casa (ajustada)
+    if ((g.ghost[i].pos.y > 7 && g.ghost[i].pos.y <= 9 && g.ghost[i].pos.x == 10) ||
+        (g.ghost[i].pos.y == 7 && g.ghost[i].pos.x >= 10 && g.ghost[i].pos.x < 12)) {
+
+        int prev_y = g.ghost[i].pos.y;
+        int prev_x = g.ghost[i].pos.x;
+
+        if (g.ghost[i].pos.y > 7) { g.ghost[i].pos.y--; g.ghost[i].dir = up; }
+        else if (g.ghost[i].pos.y == 7) { g.ghost[i].pos.x++; g.ghost[i].dir = right; }
+
+        g.lab[prev_y][prev_x] = ' ';
+        g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
         return g;
-    // Lógica para sair da casa
-    if (g.ghost[1].pos.y > 7 && g.ghost[1].pos.y <= 9 && g.ghost[1].pos.x == 10)
-    {
-        g.ghost[1].pos.y--; // Sobe para a linha 7
-        return g;
-    }
-    if (g.ghost[1].pos.y == 7 && g.ghost[1].pos.x >= 10 && g.ghost[1].pos.x < 12)
-    {
-        g.ghost[1].pos.x++; // Sai para a direita
-        return g;
     }
 
-    // Movimento no labirinto
-    int prev_y = g.ghost[1].pos.y;
-    int prev_x = g.ghost[1].pos.x;
-    int movev[2] = {up, down};
-    int moveh[2] = {left, right};
-    int next_y = prev_y;
-    int next_x = prev_x;
+    // Movimento com lógica anti-180°
+    int prev_y = g.ghost[i].pos.y;
+    int prev_x = g.ghost[i].pos.x;
 
-    if (g.lab[next_y - 1][next_x] == '-')
-        g.ghost[1].dir = up;
+    int wall_ahead = (g.ghost[i].dir == up && g.lab[prev_y - 1][prev_x] == '#') ||
+                     (g.ghost[i].dir == down && g.lab[prev_y + 1][prev_x] == '#') ||
+                     (g.ghost[i].dir == left && g.lab[prev_y][prev_x - 1] == '#') ||
+                     (g.ghost[i].dir == right && g.lab[prev_y][prev_x + 1] == '#');
 
-    if (g.ghost[1].dir == up)
-    {
-        if (g.lab[next_y - 1][next_x] != '#')
-            next_y--;
-        else {
-            g.ghost[1].dir = moveh[rand() % 2];
-            next_x += (g.ghost[1].dir == left) ? -1 : 1;
+    int possible_moves = 0;
+    if (g.lab[prev_y - 1][prev_x] != '#') possible_moves++;
+    if (g.lab[prev_y + 1][prev_x] != '#') possible_moves++;
+    if (g.lab[prev_y][prev_x - 1] != '#') possible_moves++;
+    if (g.lab[prev_y][prev_x + 1] != '#') possible_moves++;
+
+    if (wall_ahead || possible_moves > 2) {
+        int valid_dirs[4];
+        int valid_count = 0;
+        int directions[] = {up, down, left, right};
+
+        for (int j = 0; j < 4; j++) {
+            int test_dir = directions[j];
+            if (is_opposite_direction(g.ghost[i].dir, test_dir)) continue;
+
+            if ((test_dir == up && g.lab[prev_y - 1][prev_x] != '#') ||
+                (test_dir == down && g.lab[prev_y + 1][prev_x] != '#') ||
+                (test_dir == left && g.lab[prev_y][prev_x - 1] != '#') ||
+                (test_dir == right && g.lab[prev_y][prev_x + 1] != '#')) {
+                valid_dirs[valid_count++] = test_dir;
+            }
         }
-    }
-    else if (g.ghost[1].dir == down)
-    {
-        if (g.lab[next_y + 1][next_x] != '#')
-            next_y++;
-        else {
-            g.ghost[1].dir = moveh[rand() % 2];
-            next_x += (g.ghost[1].dir == left) ? -1 : 1;
-        }
-    }
-    else if (g.ghost[1].dir == left)
-    {
-        if (g.lab[next_y][next_x - 1] != '#')
-            next_x--;
-        else {
-            g.ghost[1].dir = movev[rand() % 2];
-            next_y += (g.ghost[1].dir == up) ? -1 : 1;
-        }
-    }
-    else if (g.ghost[1].dir == right)
-    {
-        if (g.lab[next_y][next_x + 1] != '#')
-            next_x++;
-        else {
-            g.ghost[1].dir = movev[rand() % 2];
-            next_y += (g.ghost[1].dir == up) ? -1 : 1;
+
+        if (valid_count > 0) {
+            g.ghost[i].dir = valid_dirs[rand() % valid_count];
+        } else {
+            // beco sem saída, permite 180°
+            g.ghost[i].dir = (g.ghost[i].dir == up) ? down :
+                            (g.ghost[i].dir == down) ? up :
+                            (g.ghost[i].dir == left) ? right : left;
         }
     }
 
-    // Atualiza posição se possível
-    if (g.lab[next_y][next_x] != '#') {
-        g.lab[g.ghost[1].pos.y][g.ghost[1].pos.x] = ' '; // limpa anterior
-        g.ghost[1].pos.y = next_y;
-        g.ghost[1].pos.x = next_x;
-        g.lab[next_y][next_x] = 'P'; // marca com P de Pinky
-    } else {
-        g.ghost[1].pos.y = prev_y;
-        g.ghost[1].pos.x = prev_x;
-    }
+    // Move na direção escolhida
+    if (g.ghost[i].dir == up) g.ghost[i].pos.y--;
+    else if (g.ghost[i].dir == down) g.ghost[i].pos.y++;
+    else if (g.ghost[i].dir == left) g.ghost[i].pos.x--;
+    else if (g.ghost[i].dir == right) g.ghost[i].pos.x++;
 
-    // Teletransporte nas bordas
-    if (g.ghost[1].pos.x == 0 && g.ghost[1].pos.y == 10)
-        g.ghost[1].pos.x = 17;
-    else if (g.ghost[1].pos.x == 18 && g.ghost[1].pos.y == 10)
-        g.ghost[1].pos.x = 1;
+    // Atualiza labirinto
+    g.lab[prev_y][prev_x] = ' ';
+    g.lab[g.ghost[i].pos.y][g.ghost[i].pos.x] = 'P';
+
     return g;
 }
