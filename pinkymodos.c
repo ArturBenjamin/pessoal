@@ -9,6 +9,7 @@ t_game chasepinky(t_game g) {
         case down:  target_y += 4; break;
         case left:  target_x -= 4; break;
         case right: target_x += 4; break;
+        case none: break;
     }
 
     if (abs(target_y - yghost) > abs(target_x - xghost)) {
