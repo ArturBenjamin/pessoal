@@ -11,6 +11,10 @@
  * @param string2 A segunda string.
  * @return Um ponteiro para a nova string concatenada. Esta memória deve ser liberada com free().
  */
+char *concatenar(const char *string1, const char *string2);
+int ePrefixo(const char *str, const char *prefixo);
+int eSufixo(const char *str, const char *sufixo);
+int temSubPalavra(const char *str, const char *
 char *concatenar(const char *string1, const char *string2) {
     size_t total_comprimento = strlen(string1) + strlen(string2) + 1;
     char *resultado = (char *)malloc(total_comprimento * sizeof(char));
