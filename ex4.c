@@ -100,3 +100,7 @@ int main(void) {
 
     return 0;
 }
+char *concatenar(const char *string1, const char *string2);
+int ePrefixo(const char *str, const char *prefixo);
+int eSufixo(const char *str, const char *sufixo);
+int temSubPalavra(const char *str, const char *sub_palavra);
