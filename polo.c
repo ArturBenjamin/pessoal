@@ -1,5 +1,5 @@
 /*****************************************************************************
- * exN.c                                    Version 20180714.101818        *
+ * polo.c                                   Version 20180714.101818        *
  * *
  * Calculadora Polonesa usando Pilhas                                      *
  * Copyright (C) 2016-2018    by Ruben Carlo Benante                       *
@@ -17,19 +17,13 @@
  * along with this program; if not, write to the                           *
  * Free Software Foundation, Inc.,                                         *
  * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.               *
- *****************************************************************************
- * To contact the author, please write to:                                 *
- * Ruben Carlo Benante                                                     *
- * Email: rcb@beco.cc                                                      *
- * Webpage: www.beco.cc                                                    *
- * Phone: +55 (81) 3184-7555                                               *
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 #include <ctype.h>
-#include "exN.h"
+#include "polo.h"
 
 int main(int argc, char *argv[])
 {
@@ -65,7 +59,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    exN_init();
+    polo_init();
 
     /* Processa cada argumento da linha de comando */
     for (int i = optind; i < argc; i++)
@@ -155,9 +149,9 @@ int main(int argc, char *argv[])
 void help(void)
 {
     IFDEBUG("help()");
-    printf("%s - Calculadora Polonesa Reversa (RPN)\n", "exN");
-    printf("\nUso: %s [opções] <expressão>\n", "exN");
-    printf("\nExemplo: %s 5 1 2 + 4 \\* + 3 -\n", "exN");
+    printf("%s - Calculadora Polonesa Reversa (RPN)\n", "polo");
+    printf("\nUso: %s [opções] <expressão>\n", "polo");
+    printf("\nExemplo: %s 5 1 2 + 4 \\* + 3 -\n", "polo");
     printf("\nOpções:\n");
     printf("\t-h,  --help\n\t\tMostra esta ajuda.\n");
     printf("\t-V,  --version\n\t\tMostra a versão e informações de copyright.\n");
@@ -170,14 +164,14 @@ void help(void)
 void copyr(void)
 {
     IFDEBUG("copyr()");
-    printf("%s - Versão %s\n", "exN", VERSION);
+    printf("%s - Versão %s\n", "polo", VERSION);
     printf("\nCopyright (C) %d %s <%s>, GNU GPL version 2 <http://gnu.org/licenses/gpl.html>.\n", 2018, "Ruben Carlo Benante", "rcb@beco.cc");
     exit(EXIT_FAILURE);
 }
 
-void exN_init(void)
+void polo_init(void)
 {
-    IFDEBUG("exN_init()");
+    IFDEBUG("polo_init()");
     /* Nenhuma inicialização específica necessária para este problema. */
     return;
 }
