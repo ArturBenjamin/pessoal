@@ -47,21 +47,13 @@
 /** @brief Debug message if DEBUG on */
 #define IFDEBUG(M) if(DEBUG) fprintf(stderr, "[DEBUG file:%s line:%d]: " M "\n", __FILE__, __LINE__); else {;}
 
-/* limits */
-#define SBUFF 256 /**< String buffer */
-#define NUM 0 /* valor na pilha eh operando */
-#define OPE 1 /* valor na pilha eh operador */
-
 /* ------------------------------------------------------------------------- */
 /* globals and types */
-
-static int verb = 0; /**< verbose level, global within the file */
 
 /* informacao de cada nodo da pilha */
 typedef struct info_pilha
 {
     int val; /* valor no nodo da pilha */
-    int tipo; /* Se tipo=NUM, val = numero; Se tipo=OPE, val = '+', '-', '*' ou '/' */
 } info_t;
 
 /* ponteiro para nodo da pilha contendo informacoes */
@@ -76,17 +68,12 @@ typedef struct nodo_pilha
 
 void help(void); /**< Prints help information and exit */
 void copyr(void); /**< Prints copyright information and exit */
-void polo_init(void);  /**< Initializes some operations before start */
 
 /* funcoes de pilha */
 int empty(pilha_t *p); /* retorna verdadeiro se pilha vazia */
 void push(pilha_t **p, info_t i); /* insere elemento val no topo */
 info_t *pop(pilha_t **p); /* remove elemento do topo */
-info_t *top(pilha_t *p); /* consulta elemento no topo, sem remove-lo */
 int size(pilha_t *p); /* retorna o total de elementos na pilha */
 void clean(pilha_t **p); /* limpa toda a memoria utilizada pela pilha */
-
-/* funcoes auxiliares */
-int valida(char *s); /* valida a equacao retornando verdadeiro/falso */
 
 #endif /* NOT def _POLO_H */
