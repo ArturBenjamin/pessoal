@@ -23,6 +23,7 @@
 #include <getopt.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h> /* Para INT_MAX e INT_MIN */
 #include "polo.h"
 
 int main(int argc, char *argv[])
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
     IFDEBUG("Starting optarg loop...");
 
     opterr = 0;
-    while((opt = getopt(argc, argv, "vhV")) != EOF)
+    while((opt = getopt(argc, argv, "hV")) != EOF) /* Removido 'v' */
     {
         switch(opt)
         {
@@ -43,9 +44,7 @@ int main(int argc, char *argv[])
             case 'V':
                 copyr();
                 break;
-            case 'v':
-                verb++;
-                break;
+            /* Removido case 'v' */
             case '?':
             default:
                 fprintf(stderr, "Opção inválida. Use -h para ajuda.\n");
@@ -59,29 +58,13 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    polo_init();
-
     /* Processa cada argumento da linha de comando */
     for (int i = optind; i < argc; i++)
     {
         char *token = argv[i];
-        if (!valida(token))
-        {
-            fprintf(stderr, "Erro: Token inválido na expressão: %s\n", token);
-            clean(&p);
-            return EXIT_FAILURE;
-        }
 
-        /* Se for um número (inicia com dígito ou - seguido de dígito) */
-        if (isdigit(token[0]) || (token[0] == '-' && isdigit(token[1])))
-        {
-            info_t info_num;
-            info_num.val = atoi(token);
-            info_num.tipo = NUM;
-            push(&p, info_num);
-        }
         /* Se for um operador */
-        else if (strlen(token) == 1 && strchr("+-*/", token[0]))
+        if (strlen(token) == 1 && strchr("+-*/", token[0]))
         {
             if (size(p) < 2)
             {
@@ -126,14 +109,47 @@ int main(int argc, char *argv[])
 
             info_t info_res;
             info_res.val = resultado;
-            info_res.tipo = NUM;
             push(&p, info_res);
+        }
+        /* Senão, tenta converter para número */
+        else
+        {
+            char *endptr;
+            long val;
+            errno = 0; /* Reseta errno antes da chamada */
+
+            val = strtol(token, &endptr, 10);
+
+            /* Verifica erros de conversão */
+            if (errno == ERANGE || val > INT_MAX || val < INT_MIN)
+            {
+                fprintf(stderr, "Erro: Overflow no número '%s'.\n", token);
+                clean(&p);
+                return EXIT_FAILURE;
+            }
+            if (endptr == token)
+            {
+                fprintf(stderr, "Erro: Token inválido '%s' não é um operador nem número.\n", token);
+                clean(&p);
+                return EXIT_FAILURE;
+            }
+            if (*endptr != '\0')
+            {
+                fprintf(stderr, "Erro: Caracteres inválidos no número '%s'.\n", token);
+                clean(&p);
+                return EXIT_FAILURE;
+            }
+
+            /* Sucesso na conversão */
+            info_t info_num;
+            info_num.val = (int)val;
+            push(&p, info_num);
         }
     }
 
     if (size(p) != 1)
     {
-        fprintf(stderr, "Erro: A expressão está mal formada (operandos em excesso).\n");
+        fprintf(stderr, "Erro: A expressão está mal formada (operandos em excesso ou faltantes).\n");
         clean(&p);
         return EXIT_FAILURE;
     }
@@ -142,7 +158,7 @@ int main(int argc, char *argv[])
     printf("Resultado: %d\n", resultado_final_info->val);
     free(resultado_final_info);
 
-    clean(&p); /* Garante que a pilha esteja vazia ao final */
+    /* clean(&p); // Opcional, pois a pilha já deve estar vazia. pop() liberou o nodo. */
     return EXIT_SUCCESS;
 }
 
@@ -155,10 +171,9 @@ void help(void)
     printf("\nOpções:\n");
     printf("\t-h,  --help\n\t\tMostra esta ajuda.\n");
     printf("\t-V,  --version\n\t\tMostra a versão e informações de copyright.\n");
-    printf("\t-v,  --verbose\n\t\tAumenta o nível de verbosidade.\n");
     printf("\nStatus de Saída:\n\t0 se ok.\n\t1 se ocorreu algum erro.\n");
     printf("\nAutor:\n\tEscrito por %s <%s>\n\n", "Ruben Carlo Benante", "rcb@beco.cc");
-    exit(EXIT_FAILURE);
+    exit(EXIT_SUCCESS); /* Corrigido para SUCESSO */
 }
 
 void copyr(void)
@@ -166,40 +181,7 @@ void copyr(void)
     IFDEBUG("copyr()");
     printf("%s - Versão %s\n", "polo", VERSION);
     printf("\nCopyright (C) %d %s <%s>, GNU GPL version 2 <http://gnu.org/licenses/gpl.html>.\n", 2018, "Ruben Carlo Benante", "rcb@beco.cc");
-    exit(EXIT_FAILURE);
-}
-
-void polo_init(void)
-{
-    IFDEBUG("polo_init()");
-    /* Nenhuma inicialização específica necessária para este problema. */
-    return;
-}
-
-int valida(char *s)
-{
-    errno = 0;
-    /* Verifica se é um operador válido de um caractere */
-    if (strlen(s) == 1 && strchr("+-*/", s[0]))
-    {
-        return 1; /* Verdadeiro */
-    }
-
-    /* Verifica se é um número inteiro (permitindo sinal negativo) */
-    int i = 0;
-    if (s[0] == '-') i = 1;
-    
-    if (s[i] == '\0') return 0; /* Apenas "-" não é válido */
-
-    for (; s[i] != '\0'; i++)
-    {
-        if (!isdigit(s[i]))
-        {
-            errno = EINVAL;
-            return 0; /* Falso */
-        }
-    }
-    return 1; /* Verdadeiro */
+    exit(EXIT_SUCCESS); /* Corrigido para SUCESSO */
 }
 
 info_t *pop(pilha_t **p)
@@ -267,14 +249,4 @@ int size(pilha_t *p)
         atual = atual->prox;
     }
     return count;
-}
-
-info_t *top(pilha_t *p)
-{
-    if (empty(p))
-    {
-        errno = EFAULT;
-        return NULL;
-    }
-    return p->info;
 }
