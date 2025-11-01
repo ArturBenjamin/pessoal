@@ -1,21 +1,33 @@
 #include <stdio.h>
 
 int main() {
-    int idade = 20;
-    int tem_convite = 0; // 0 = Falso (não tem)
+    int idade;
+    int tem_convite; // 0 = Nao, 1 = Sim
 
-    // E (&&): Precisa ter mais de 18 E ter convite
+    // --- ENTRADA DE DADOS ---
+    printf("Digite a sua idade: ");
+    scanf("%d", &idade);
+
+    printf("Voce tem convite? (Digite 1 para SIM ou 0 para NAO): ");
+    scanf("%d", &tem_convite);
+
+    printf("\n--- Verificando Acessos ---\n");
+
+    // --- LÓGICA VIP (E / &&) ---
+    // Precisa ter mais de 18 E ter convite
     if ( (idade >= 18) && (tem_convite == 1) ) {
-        printf("1. Pode entrar na festa VIP.\n");
+        printf("1. (VIP): Acesso LIBERADO.\n");
     } else {
-        printf("1. Nao pode entrar na festa VIP.\n");
+        printf("1. (VIP): Acesso NEGADO.\n");
     }
 
-    // OU (||): Precisa ter mais de 18 OU ter convite
+    // --- LÓGICA PISTA (OU / ||) ---
+    // Precisa ter mais de 18 OU ter convite
     if ( (idade >= 18) || (tem_convite == 1) ) {
-        printf("2. Pode entrar na festa Pista.\n");
+        printf("2. (Pista): Acesso LIBERADO.\n");
     } else {
-        printf("2. Nao pode entrar na festa Pista.\n");
+        // Só entra aqui se for menor de 18 E não tiver convite
+        printf("2. (Pista): Acesso NEGADO.\n");
     }
     
     return 0;
