@@ -1,31 +1,30 @@
-void delete_word(TextBuffer *buffer, int line, int col)
+void delete_line(TextBuffer *buffer, int line)
 {
     if (line < 0 || line >= buffer->num_lines)
         return;
 
-    char *txt = buffer->lines[line];
-    int len = buffer->line_lengths[line];
+    // 1. Libera a memória da linha
+    free(buffer->lines[line]);
 
-    // 1. Se já estamos no fim da linha e existe linha abaixo → unir
-    if (col >= len)
+    // 2. Desloca todas as linhas abaixo para cima
+    for (int i = line; i < buffer->num_lines - 1; i++)
     {
-        if (line < buffer->num_lines - 1)
-            join_lines(buffer, line + 1);
-        return;
+        buffer->lines[i] = buffer->lines[i + 1];
+        buffer->line_lengths[i] = buffer->line_lengths[i + 1];
     }
 
-    int start = col;
-    int end = col;
+    // 3. Reduz o número de linhas
+    buffer->num_lines--;
 
-    // 2. Pular espaços iniciais (caso o cursor esteja entre palavras)
-    while (end < len && (txt[end] == ' ' || txt[end] == '\t'))
-        end++;
+    // 4. Se todas as linhas foram apagadas, cria uma linha vazia
+    if (buffer->num_lines == 0)
+    {
+        buffer->num_lines = 1;
+        buffer->lines = realloc(buffer->lines, sizeof(char *));
+        buffer->line_lengths = realloc(buffer->line_lengths, sizeof(int));
 
-    // 3. Avançar até o final da palavra
-    while (end < len && txt[end] != ' ' && txt[end] != '\t')
-        end++;
-
-    // 4. Remover os caracteres da palavra
-    memmove(&txt[start], &txt[end], len - end + 1); // +1 inclui o '\0'
-    buffer->line_lengths[line] -= (end - start);
+        buffer->lines[0] = malloc(1);
+        buffer->lines[0][0] = '\0';
+        buffer->line_lengths[0] = 0;
+    }
 }
