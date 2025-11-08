@@ -1,36 +1,23 @@
-void paste_block(TextBuffer *buffer, int line_index, TextBuffer *clipboard)
+int search_word(TextBuffer *buffer, const char *word, int *found_line, int *found_col)
 {
-    // 1. Verifica se há algo no clipboard
-    if (clipboard == NULL || clipboard->num_lines == 0)
-        return;
+    // 1. Verifica se há algo a procurar
+    if (!buffer || !word || strlen(word) == 0)
+        return 0; // nada a procurar
 
-    // 2. Garante que o índice de inserção é válido
-    if (line_index < 0)
-        line_index = 0;
-    if (line_index > buffer->num_lines)
-        line_index = buffer->num_lines;
-
-    // 3. Calcula o novo total de linhas
-    int new_total = buffer->num_lines + clipboard->num_lines;
-
-    // 4. Realoca memória para acomodar as novas linhas
-    buffer->lines = realloc(buffer->lines, sizeof(char *) * new_total);
-    buffer->line_lengths = realloc(buffer->line_lengths, sizeof(int) * new_total);
-
-    // 5. Move as linhas abaixo do ponto de inserção para abrir espaço
-    for (int i = buffer->num_lines - 1; i >= line_index; i--)
+    // 2. Percorre cada linha do texto
+    for (int i = 0; i < buffer->num_lines; i++)
     {
-        buffer->lines[i + clipboard->num_lines] = buffer->lines[i];
-        buffer->line_lengths[i + clipboard->num_lines] = buffer->line_lengths[i];
+        char *pos = strstr(buffer->lines[i], word); // procura a palavra na linha
+
+        // 3. Se encontrou, retorna linha e coluna
+        if (pos != NULL)
+        {
+            *found_line = i;
+            *found_col = (int)(pos - buffer->lines[i]);
+            return 1; // encontrado!
+        }
     }
 
-    // 6. Copia as linhas do clipboard para o buffer
-    for (int i = 0; i < clipboard->num_lines; i++)
-    {
-        buffer->lines[line_index + i] = strdup(clipboard->lines[i]);
-        buffer->line_lengths[line_index + i] = clipboard->line_lengths[i];
-    }
-
-    // 7. Atualiza o número total de linhas
-    buffer->num_lines = new_total;
+    // 4. Caso chegue aqui, não achou
+    return 0;
 }
