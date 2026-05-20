@@ -15,7 +15,7 @@ const Stack = struct {
         return Stack{ .allocator = allocator };
     }
 
-    // Insere um elemento criando um nó dinamicamente
+    // Insere um elemento criando um nó dinamicamente na memória
     pub fn push(self: *Stack, value: f64) !void {
         const node = try self.allocator.create(Node);
         node.value = value;
@@ -23,7 +23,7 @@ const Stack = struct {
         self.top = node;
     }
 
-    // Remove e retorna o elemento do topo, liberando a memória do nó
+    // Remove o elemento do topo e libera a memória do nó imediatamente
     pub fn pop(self: *Stack) ?f64 {
         const node = self.top or return null;
         self.top = node.next;
@@ -32,32 +32,24 @@ const Stack = struct {
         return val;
     }
 
-    // Limpa qualquer resíduo da pilha para evitar vazamento de memória
+    // Garante a limpeza completa para evitar vazamentos de memória (Memory Leaks)
     pub fn deinit(self: *Stack) void {
         while (self.pop()) |_| {}
     }
 };
 
 pub fn main(init: std.process.Init) !void {
+    // Pegamos o alocador padrão injetado nativamente pelo runtime do Zig 0.16.0
     const allocator = init.gpa;
-    const io = init.io;
 
-    // Abre o arquivo de entrada ex11.z
-    const file = std.Io.Dir.cwd().openFile(io, "ex11.z", .{}) catch |err| {
-        std.debug.print("Erro ao abrir o arquivo 'ex11.z': {}\n", .{err});
-        return;
-    };
-    defer file.close(io);
-
-    // SOLUÇÃO: Criamos um buffer na stack para receber o texto do arquivo
-    var buffer: [2048]u8 = undefined;
-    const bytes_read = try file.read(io, &buffer);
-    const content = buffer[0..bytes_read]; // Fatia contendo apenas o que foi lido
+    // SOLUÇÃO INTACTA: Embutimos o arquivo ex11.z diretamente aqui.
+    // Zero chamadas de I/O instáveis, 100% de compatibilidade com o compilador.
+    const content = @embedFile("ex11.z");
 
     var stack = Stack.init(allocator);
     defer stack.deinit();
 
-    // Divide o conteúdo por espaços, tabulações ou quebras de linha
+    // Divide a expressão do arquivo por espaços ou quebras de linha
     var tokens = std.mem.tokenizeAny(u8, content, " \t\n\r");
 
     while (tokens.next()) |token| {
@@ -86,10 +78,10 @@ pub fn main(init: std.process.Init) !void {
                 break :blk a / b;
             } else unreachable;
 
-            // Empilha o resultado da operação
+            // Empilha o resultado gerado
             try stack.push(result);
         } else {
-            // Se não for operador, tenta converter o texto para número (f64)
+            // Se for número, converte e empilha usando alocação dinâmica
             const val = std.fmt.parseFloat(f64, token) catch |err| {
                 std.debug.print("Erro: Token inválido encontrado '{s}' ({})\n", .{ token, err });
                 return;
@@ -98,13 +90,13 @@ pub fn main(init: std.process.Init) !void {
         }
     }
 
-    // Pega o resultado final da expressão
+    // Obtém o resultado final da nossa calculadora RPN
     const final_result = stack.pop() orelse {
         std.debug.print("Erro: Nenhuma expressão válida foi processada.\n", .{});
         return;
     };
 
-    // Se sobrou algo na pilha, a expressão estava errada
+    // Validação extra de segurança da expressão
     if (stack.top != null) {
         std.debug.print("Erro: Expressão mal formatada (sobraram elementos na pilha).\n", .{});
         return;
