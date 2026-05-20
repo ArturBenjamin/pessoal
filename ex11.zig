@@ -38,24 +38,21 @@ const Stack = struct {
     }
 };
 
-// No Zig 0.16.0, o 'main' recebe a struct 'init' contendo o ambiente injetado
 pub fn main(init: std.process.Init) !void {
-    // O Zig 0.16.0 já fornece o alocador (gpa) com checagem de vazamento de memória
-    // e a instância de I/O (io) prontos para uso através do 'init'
     const allocator = init.gpa;
     const io = init.io;
 
-    // Abre o arquivo de entrada ex11.z usando o novo modelo de I/O (std.Io)
+    // Abre o arquivo de entrada ex11.z
     const file = std.Io.Dir.cwd().openFile(io, "ex11.z", .{}) catch |err| {
         std.debug.print("Erro ao abrir o arquivo 'ex11.z': {}\n", .{err});
         return;
     };
     defer file.close(io);
 
-    // Lê o conteúdo do arquivo usando o novo padrão guiado por 'io'
-    const max_size = 1024 * 1024; // Limite de 1MB
-    const content = try file.readToEndAlloc(io, allocator, max_size);
-    defer allocator.free(content);
+    // SOLUÇÃO: Criamos um buffer na stack para receber o texto do arquivo
+    var buffer: [2048]u8 = undefined;
+    const bytes_read = try file.read(io, &buffer);
+    const content = buffer[0..bytes_read]; // Fatia contendo apenas o que foi lido
 
     var stack = Stack.init(allocator);
     defer stack.deinit();
