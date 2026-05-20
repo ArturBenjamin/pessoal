@@ -38,22 +38,23 @@ const Stack = struct {
     }
 };
 
-pub fn main() !void {
-    // Gerenciador de memória com detector de memory leak integrado
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+// No Zig 0.16.0, o 'main' recebe a struct 'init' contendo o ambiente injetado
+pub fn main(init: std.process.Init) !void {
+    // O Zig 0.16.0 já fornece o alocador (gpa) com checagem de vazamento de memória
+    // e a instância de I/O (io) prontos para uso através do 'init'
+    const allocator = init.gpa;
+    const io = init.io;
 
-    // Abre o arquivo de entrada ex11.z
-    const file = std.fs.cwd().openFile("ex11.z", .{}) catch |err| {
+    // Abre o arquivo de entrada ex11.z usando o novo modelo de I/O (std.Io)
+    const file = std.Io.Dir.cwd().openFile(io, "ex11.z", .{}) catch |err| {
         std.debug.print("Erro ao abrir o arquivo 'ex11.z': {}\n", .{err});
         return;
     };
-    defer file.close();
+    defer file.close(io);
 
-    // Lê o conteúdo do arquivo para a memória
+    // Lê o conteúdo do arquivo usando o novo padrão guiado por 'io'
     const max_size = 1024 * 1024; // Limite de 1MB
-    const content = try file.readToEndAlloc(allocator, max_size);
+    const content = try file.readToEndAlloc(io, allocator, max_size);
     defer allocator.free(content);
 
     var stack = Stack.init(allocator);
@@ -67,7 +68,7 @@ pub fn main() !void {
         if (std.mem.eql(u8, token, "+") or std.mem.eql(u8, token, "-") or 
             std.mem.eql(u8, token, "*") or std.mem.eql(u8, token, "/")) {
             
-            // Desempilha os dois últimos valores (Atenção à ordem de subtração/divisão!)
+            // Desempilha os dois últimos valores
             const b = stack.pop() orelse {
                 std.debug.print("Erro: Operandos insuficientes para o operador '{s}'.\n", .{token});
                 return;
@@ -106,7 +107,7 @@ pub fn main() !void {
         return;
     };
 
-    // Se sobrou algo na pilha, a expressão estava errada (ex: números demais)
+    // Se sobrou algo na pilha, a expressão estava errada
     if (stack.top != null) {
         std.debug.print("Erro: Expressão mal formatada (sobraram elementos na pilha).\n", .{});
         return;
