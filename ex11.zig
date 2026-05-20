@@ -37,14 +37,11 @@ const Stack = struct {
     }
 };
 
-// A função main real e padrão da linguagem Zig
 pub fn main() !void {
-    // Alocador real padrão recomendado para programas Zig
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    // USANDO O ALOCADOR QUE SABEMOS QUE FUNCIONA NO SEU ZIG
+    const allocator = std.heap.page_allocator;
 
-    // SOLUÇÃO: String direto no código para ignorar problemas de arquivo
+    // String direto no código para ignorar problemas de arquivo
     const content = "10 2 / 5 *";
     std.debug.print("Expressão a ser calculada: {s}\n", .{content});
 
