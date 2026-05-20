@@ -36,71 +36,65 @@ const Stack = struct {
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
+    const print = std.debug.print;
+
+    // =========================================================
+    // COMO TESTAR: Altere a expressão aqui dentro das aspas!
+    // Exemplos: "10 2 / 5 *"  ou  "2 3 + 4 *"  ou  "15 5 /"
+    // =========================================================
+    const expressao = "10 2 / 5 *";
     
-    // Pegamos as ferramentas de entrada (teclado) e saída (tela)
-    const stdin = std.io.getStdIn().reader();
-    const stdout = std.io.getStdOut().writer();
+    print("----------------------------------------\n", .{});
+    print("Expressao RPN recebida: {s}\n", .{expressao});
+    print("----------------------------------------\n", .{});
 
-    // 1. Pede os valores ao usuário
-    try stdout.print("Digite a expressao RPN (ex: 10 2 / 5 *): ", .{});
+    var stack = Stack.init(allocator);
+    defer stack.deinit();
 
-    // 2. Prepara um espaço na memória para guardar o que o usuário digitar
-    var buffer: [1024]u8 = undefined;
-    
-    // 3. Lê o teclado até o usuário apertar Enter (\n)
-    const input_or_null = try stdin.readUntilDelimiterOrEof(&buffer, '\n');
+    var tokens = std.mem.tokenizeAny(u8, expressao, " \t\r\n");
 
-    if (input_or_null) |input| {
-        var stack = Stack.init(allocator);
-        defer stack.deinit();
+    while (tokens.next()) |token| {
+        if (std.mem.eql(u8, token, "+") or std.mem.eql(u8, token, "-") or 
+            std.mem.eql(u8, token, "*") or std.mem.eql(u8, token, "/")) {
+            
+            const b = stack.pop() orelse {
+                print("Erro: Faltam numeros para o operador '{s}'.\n", .{token});
+                return;
+            };
+            const a = stack.pop() orelse {
+                print("Erro: Faltam numeros para o operador '{s}'.\n", .{token});
+                return;
+            };
 
-        // Agora usamos o 'input' (o que você digitou) em vez de um texto fixo!
-        var tokens = std.mem.tokenizeAny(u8, input, " \t\r");
-
-        while (tokens.next()) |token| {
-            if (std.mem.eql(u8, token, "+") or std.mem.eql(u8, token, "-") or 
-                std.mem.eql(u8, token, "*") or std.mem.eql(u8, token, "/")) {
-                
-                const b = stack.pop() orelse {
-                    try stdout.print("Erro: Faltam numeros para o operador '{s}'.\n", .{token});
+            const result = if (std.mem.eql(u8, token, "+")) a + b
+            else if (std.mem.eql(u8, token, "-")) a - b
+            else if (std.mem.eql(u8, token, "*")) a * b
+            else if (std.mem.eql(u8, token, "/")) blk: {
+                if (b == 0) {
+                    print("Erro: Nao e possivel dividir por zero.\n", .{});
                     return;
-                };
-                const a = stack.pop() orelse {
-                    try stdout.print("Erro: Faltam numeros para o operador '{s}'.\n", .{token});
-                    return;
-                };
+                }
+                break :blk a / b;
+            } else unreachable;
 
-                const result = if (std.mem.eql(u8, token, "+")) a + b
-                else if (std.mem.eql(u8, token, "-")) a - b
-                else if (std.mem.eql(u8, token, "*")) a * b
-                else if (std.mem.eql(u8, token, "/")) blk: {
-                    if (b == 0) {
-                        try stdout.print("Erro: Nao e possivel dividir por zero.\n", .{});
-                        return;
-                    }
-                    break :blk a / b;
-                } else unreachable;
-
-                try stack.push(result);
-            } else {
-                const val = std.fmt.parseFloat(f64, token) catch {
-                    try stdout.print("Erro: Valor invalido digitado -> '{s}'\n", .{token});
-                    return;
-                };
-                try stack.push(val);
-            }
-        }
-
-        if (stack.pop()) |final_result| {
-            if (stack.top == null) {
-                try stdout.print("Resultado Final: {d}\n", .{final_result});
-            } else {
-                try stdout.print("Erro: Sobraram numeros na pilha (conta incompleta).\n", .{});
-            }
+            try stack.push(result);
         } else {
-            try stdout.print("Nenhuma conta foi feita.\n", .{});
+            // Se falhar ao tentar ler um numero, avisa o erro
+            const val = std.fmt.parseFloat(f64, token) catch {
+                print("Erro: Valor invalido detectado -> '{s}'\n", .{token});
+                return;
+            };
+            try stack.push(val);
+        }
+    }
+
+    if (stack.pop()) |final_result| {
+        if (stack.top == null) {
+            print("Resultado Final: {d}\n\n", .{final_result});
+        } else {
+            print("Erro: Sobraram numeros na pilha (conta incompleta).\n", .{});
         }
     } else {
-        try stdout.print("\nNenhuma entrada detectada.\n", .{});
+        print("Nenhuma conta foi feita.\n", .{});
     }
 }
