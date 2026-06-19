@@ -1,40 +1,3 @@
-/*
- * ============================================================================
- * PROJETO FINAL - Simulação de Propagação de Calor em Barra Metálica
- * Grupo 1 - Programação (Vídeo 6: Projeto Final + Debug + Análise)
- * ============================================================================
- *
- * VERSÃO COM ERROS INTENCIONAIS (para fins didáticos no vídeo de debug)
- *
- * Este programa contém 3 bugs propositais, na ordem em que aparecem
- * na apresentação:
- *
- *   BUG 1 (Compilação) -> dentro de inicializar()   [linha ~38]
- *   BUG 2 (Lógico)      -> dentro de simular()       [linha ~62]
- *   BUG 3 (Runtime)     -> dentro de simular()       [linha ~62, mesma área]
- *
- * Cada bug está marcado com um comentário "// BUG N:" para facilitar
- * localizar durante a gravação do vídeo.
- *
- * COMO USAR ESTE ARQUIVO:
- *   1) Tente compilar como está -> vai falhar (Bug 1, erro de compilação).
- *   2) Corrija o Bug 1 (veja a dica no comentário) e recompile.
- *   3) Rode o programa -> vai compilar e rodar, mas o resultado estará
- *      sutilmente errado (Bug 2, erro lógico). Use os prints de debug
- *      indicados para perceber o problema.
- *   4) Depois de corrigir o Bug 2, rode novamente com uma barra grande
- *      (ex: 30 posições) -> o programa pode travar/crashar (Bug 3,
- *      erro de runtime / acesso fora dos limites do vetor).
- *   5) Corrija o Bug 3 e o programa deve funcionar perfeitamente.
- *
- * Para compilar:
- *   g++ -std=c++17 -Wall -o projeto projeto_com_bugs.cpp
- *
- * Para rodar:
- *   ./projeto
- * ============================================================================
- */
-
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -56,16 +19,10 @@ void inicializar(vector<double>& barra, double tempEsq, double tempDir) {
     }
 
     // BUG 1 (Erro de Compilação): typo no nome da variável.
-    // 'tempertura' foi declarada, mas seria usada como 'temperatura'.
-    // O compilador vai acusar: "'temperatura' was not declared in this scope"
     double tempertura = tempEsq;
     barra[0]   = temperatura;   // <-- ERRO: nome errado, não compila
     barra[n-1] = tempDir;
 
-    // DICA DE CORREÇÃO:
-    // Troque a declaração para "double temperatura = tempEsq;"
-    // (ou troque o uso para "tempertura" - mas o certo é corrigir o nome
-    // para "temperatura", que é o que faz sentido semanticamente).
 }
 
 // ----------------------------------------------------------------------------
@@ -114,22 +71,12 @@ void simular(vector<double>& barra, int iteracoes, bool verbose) {
 
         barra = aux; // atualiza com os novos valores
 
-        // DEBUG: descomente a linha abaixo para rastrear a extremidade
-        // esquerda e perceber o Bug 2 (ela não deveria mudar de valor!)
-        // cout << "[debug] barra[0] = " << barra[0] << endl;
 
         if (verbose) {
             exibirResultados(barra, t);
         }
     }
 
-    // DICA DE CORREÇÃO (Bugs 2 e 3):
-    // Troque o loop para:
-    //   for (int i = 1; i < n - 1; i++) {
-    //       aux[i] = (barra[i-1] + barra[i] + barra[i+1]) / 3.0;
-    //   }
-    // Isso resolve os dois problemas ao mesmo tempo: preserva as
-    // extremidades fixas (Bug 2) e nunca acessa índice fora do vetor (Bug 3).
 }
 
 // ----------------------------------------------------------------------------
